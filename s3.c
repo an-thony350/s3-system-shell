@@ -50,9 +50,9 @@ void child(char *args[], int argsc)
     ///Use execvp to load the binary 
     ///of the command specified in args[ARG_PROGNAME].
     ///For reference, see the code in lecture 3.
-    printf("child funct.");
+    printf("child funct. \n");
     execvp(args[0], args);
-    perror("execvp failed");
+    perror("execvp failed \n");
     exit(1);
 }
 
@@ -74,7 +74,7 @@ void launch_program(char *args[], int argsc)
     }
 
     if(strcmp(args[0], "exit") == 0){
-        printf("exit command");
+        printf("exit command \n");
         exit(0);
     }
 
