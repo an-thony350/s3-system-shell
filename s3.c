@@ -50,7 +50,6 @@ void child(char *args[], int argsc)
     ///Use execvp to load the binary 
     ///of the command specified in args[ARG_PROGNAME].
     ///For reference, see the code in lecture 3.
-    printf("child funct. \n");
     execvp(args[0], args);
     perror("execvp failed \n");
     exit(1);
