@@ -141,6 +141,46 @@ void clean_args(char *args[], int *argsc){
     *argsc = index;
 }
 
+void child_with_input_redirected(char *args[], int argsc, char* filename){
+    
+    int fd = open(filename, O_RDONLY);
+    if(fd<0){
+        perror("open");
+        exit(1);
+    }
+
+    dup2(fd, STDIN_FILENO);
+    close(fd);
+    execvp(args[0], args);
+}
+
+void child_with_output_redirected(char *args[], int argsc, char *filename, int append){
+
+    int fd;
+
+    if(append){
+        int fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        // 0644 is the file permission (rw-r--r--)
+    }
+    else{
+        int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        // O_TRUNC Overwrites the file if it exists
+        // File has write access, create access and overwrite access
+    }
+
+    if(fd<0){
+        perror("open");
+        exit(1);
+    }
+
+    dup2(fd,STDOUT_FILENO);
+    close(fd);
+    execvp(args[0], args);
+    perror("execvp failed\n");
+    exit(1);
+    
+}
+
 void launch_program_with_redirection(char *args[], int argsc){
     char tmp_line[MAX_LINE];
     tmp_line[0] = '\0';
@@ -164,13 +204,13 @@ void launch_program_with_redirection(char *args[], int argsc){
         clean_args(args, &argsc);
 
         if(redir_type == 1){
-            child_with_output_redirected(args, argsc); // > operator
+            child_with_output_redirected(args, argsc, file, 0); // > operator
         }
         else if(redir_type == 2){
-            child_with_input_redirected(args, argsc); // < operator
+            child_with_input_redirected(args, argsc, file); // < operator
         }
         else if(redir_type == 3){
-            child_with_output_redirected(args, argsc); // >> operator
+            child_with_output_redirected(args, argsc, file, 1); // >> operator
         }
         else{
             fprintf(stderr, "Redirection operator error");

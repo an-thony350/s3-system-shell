@@ -49,8 +49,8 @@ void launch_program(char *args[], int argsc);
 int command_with_redirection(char line[]);
 void launch_program_with_redirection(char *args[], int argsc);
 //smaller functions for specific purposes
-void child_with_output_redirected(char *args[], int argsc);
-void child_with_input_redirected(char *args[], int argsc);
+void child_with_output_redirected(char *args[], int argsc, char *filename, int append);
+void child_with_input_redirected(char *args[], int argsc, char *filename);
 char* filename(char *args[], int argsc);
 void clean_args(char *args[], int *argsc);
 #endif
