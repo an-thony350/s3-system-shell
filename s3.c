@@ -106,6 +106,41 @@ int command_with_redirection(char line[]){
     return 0;
 }
 
+char* filename(char *args[], int argsc){
+    //Extracts the filename from the args
+    //Will allow for the input/output/append instructions
+    //Note that strcmp retrns 0 if strings are equal
+
+    for(int i = 0; i<argsc; i++){
+        if(strcmp(args[i], ">") == 0  || strcmp(args[i], ">>") == 0  || strcmp(args[i], "<") == 0){
+            if(i + 1 < argsc) {
+                return args[i + 1];
+            }
+        }
+    }
+    return NULL;
+}
+
+void clean_args(char *args[], int *argsc){
+    //Removes redirection operator and filename from args list
+    //Required for correct execvp execution
+    //argsc is a pointer as this value is changed
+
+    int index = 0;
+
+    for(int i = 0; i < *argsc; i++){
+        if(strcmp(args[i], ">") == 0  || strcmp(args[i], ">>") == 0  || strcmp(args[i], "<") == 0){
+            i++;
+        }
+        else{
+            args[index] = args[i];
+            index++;
+        }
+    }
+    args[index] == NULL;
+    *argsc = index;
+}
+
 void launch_program_with_redirection(char *args[], int argsc){
     char tmp_line[MAX_LINE];
     tmp_line[0] = '\0';
@@ -125,14 +160,17 @@ void launch_program_with_redirection(char *args[], int argsc){
       
     else if(rc == 0){
 
+        char *file = filename(args, argsc);
+        clean_args(args, &argsc);
+
         if(redir_type == 1){
-            child_with_input_redirected(args, argsc);
+            child_with_output_redirected(args, argsc); // > operator
         }
         else if(redir_type == 2){
-            child_with_output_redirected(args, argsc);
+            child_with_input_redirected(args, argsc); // < operator
         }
         else if(redir_type == 3){
-            child_with_output_redirected(args, argsc);
+            child_with_output_redirected(args, argsc); // >> operator
         }
         else{
             fprintf(stderr, "Redirection operator error");
