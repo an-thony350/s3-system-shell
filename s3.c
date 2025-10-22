@@ -97,7 +97,52 @@ int command_with_redirection(char line[]){
     if(line == NULL) return 0;
 
     for(int i = 0; line[i] != '\0'; i++){
-        if(line[i] == '>' || line[i] == '<') return 1;
+        if(line[i] == '>'){
+            if(line[i+1] == '>') return 3;
+            else return 1;
+        }
+        if(line[i] == '<') return 2;
     }
     return 0;
+}
+
+void launch_program_with_redirection(char *args[], int argsc){
+    char tmp_line[MAX_LINE];
+    tmp_line[0] = '\0';
+
+    for(int i = 0; i < argsc; i++){
+        strcat(tmp_line, args[i]);
+        if(i < argsc - 1) strcat(tmp_line, " ");
+    }
+
+    int redir_type = command_with_redirection(tmp_line);
+
+    int rc = fork();
+    if(rc<0){
+        fprintf(stderr, "fork failed\n");
+        exit(1);
+    }
+      
+    else if(rc == 0){
+
+        if(redir_type == 1){
+            child_with_input_redirected(args, argsc);
+        }
+        else if(redir_type == 2){
+            child_with_output_redirected(args, argsc);
+        }
+        else if(redir_type == 3){
+            child_with_output_redirected(args, argsc);
+        }
+        else{
+            fprintf(stderr, "Redirection operator error");
+            exit(1);
+        }
+    
+    }
+    
+    else{
+        wait(NULL);
+    }
+
 }
