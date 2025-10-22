@@ -127,17 +127,22 @@ void clean_args(char *args[], int *argsc){
     //argsc is a pointer as this value is changed
 
     int index = 0;
+    int skip = 0;
 
     for(int i = 0; i < *argsc; i++){
+
+        if(skip){
+            skip = 0;
+            continue;
+        }
         if(strcmp(args[i], ">") == 0  || strcmp(args[i], ">>") == 0  || strcmp(args[i], "<") == 0){
-            i++;
+            skip = 1;
         }
         else{
-            args[index] = args[i];
-            index++;
+            args[index++] = args[i];
         }
     }
-    args[index] == NULL;
+    args[index] = NULL;
     *argsc = index;
 }
 
@@ -156,32 +161,38 @@ void child_with_input_redirected(char *args[], int argsc, char* filename){
 
 void child_with_output_redirected(char *args[], int argsc, char *filename, int append){
 
-    int fd;
+
+    int flags;
 
     if(append){
-        int fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-        // 0644 is the file permission (rw-r--r--)
+       flags = O_APPEND | O_WRONLY | O_CREAT;
     }
     else{
-        int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        flags = O_TRUNC | O_WRONLY | O_CREAT;
+
         // O_TRUNC Overwrites the file if it exists
         // File has write access, create access and overwrite access
     }
+
+    int fd = open(filename, flags, 0644);
+     // 0644 is the file permission (rw-r--r--)
+
 
     if(fd<0){
         perror("open");
         exit(1);
     }
 
-    dup2(fd,STDOUT_FILENO);
+    dup2(fd, STDOUT_FILENO);
     close(fd);
     execvp(args[0], args);
-    perror("execvp failed\n");
+    perror("execvp failed");
     exit(1);
     
 }
 
 void launch_program_with_redirection(char *args[], int argsc){
+
     char tmp_line[MAX_LINE];
     tmp_line[0] = '\0';
 
@@ -192,35 +203,34 @@ void launch_program_with_redirection(char *args[], int argsc){
 
     int redir_type = command_with_redirection(tmp_line);
 
+    // Extract filename in parent (this doesn't modify args)
+    char *file = filename(args, argsc);
+
     int rc = fork();
     if(rc<0){
         fprintf(stderr, "fork failed\n");
         exit(1);
     }
-      
     else if(rc == 0){
-
-        char *file = filename(args, argsc);
+        // Clean args in the child process
         clean_args(args, &argsc);
 
+
         if(redir_type == 1){
-            child_with_output_redirected(args, argsc, file, 0); // > operator
+            child_with_output_redirected(args, argsc, file, 0);
         }
         else if(redir_type == 2){
-            child_with_input_redirected(args, argsc, file); // < operator
+            child_with_input_redirected(args, argsc, file);
         }
         else if(redir_type == 3){
-            child_with_output_redirected(args, argsc, file, 1); // >> operator
+            child_with_output_redirected(args, argsc, file, 1);
         }
         else{
             fprintf(stderr, "Redirection operator error");
             exit(1);
         }
-    
     }
-    
     else{
         wait(NULL);
     }
-
 }
