@@ -73,7 +73,6 @@ void launch_program(char *args[], int argsc)
     }
 
     if(strcmp(args[0], "exit") == 0){
-        printf("exit command \n");
         exit(0);
     }
 
@@ -89,4 +88,16 @@ void launch_program(char *args[], int argsc)
     else{
         reap();
     }
+}
+
+int command_with_redirection(char line[]){
+    // Checks if any redirection operators are present
+    // Assumes no redirection operators otherwise present
+
+    if(line == NULL) return 0;
+
+    for(int i = 0; line[i] != '\0'; i++){
+        if(line[i] == '>' || line[i] == '<') return 1;
+    }
+    return 0;
 }
