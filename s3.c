@@ -7,7 +7,7 @@ void construct_shell_prompt(char shell_prompt[])
 }
 
 ///Prints a shell prompt and reads input from the user
-void read_command_line(char line[])
+void read_command_line(char line[], char lwd)
 {
     char shell_prompt[MAX_PROMPT_LEN];
     construct_shell_prompt(shell_prompt);
@@ -233,4 +233,20 @@ void launch_program_with_redirection(char *args[], int argsc){
     else{
         wait(NULL);
     }
+}
+
+
+int is_cd(char line[]) {
+    if (line == NULL) return 0;
+
+    int i = 0;
+    while (line[i] == ' ' || line[i] == '\t') i++;
+
+    if (line[i] == 'c' && line[i+1] == 'd') {
+        char next_char = line[i+2];
+        return (next_char == ' ') || (next_char == '\t') || 
+               (next_char == '\n') || (next_char == '\0');
+    }
+    
+    return 0;
 }
