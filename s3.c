@@ -6,7 +6,6 @@ void construct_shell_prompt(char shell_prompt[])
     char cwd[MAX_PROMPT_LEN];
 
     if(getcwd(cwd, sizeof(cwd)) != NULL){
-         printf("DEBUG: getcwd returns: %s\n", cwd);
         char *name_cwd = strrchr(cwd, '/');
         if(name_cwd != NULL && name_cwd[1] != '\0'){
             snprintf(shell_prompt, MAX_PROMPT_LEN, "[%s]$ ", name_cwd+1);
@@ -220,7 +219,6 @@ void launch_program_with_redirection(char *args[], int argsc){
 
     int redir_type = command_with_redirection(tmp_line);
 
-    // Extract filename in parent (this doesn't modify args)
     char *file = filename(args, argsc);
 
     int rc = fork();
@@ -229,7 +227,6 @@ void launch_program_with_redirection(char *args[], int argsc){
         exit(1);
     }
     else if(rc == 0){
-        // Clean args in the child process
         clean_args(args, &argsc);
 
 
@@ -253,11 +250,11 @@ void launch_program_with_redirection(char *args[], int argsc){
 }
 
 void init_lwd(char lwd[]){
-    if(getcwd(lwd, MAX_PROMPT_LEN) == NULL){ //
+    if(getcwd(lwd, MAX_PROMPT_LEN) == NULL){ 
         perror("getcwd failed");
         strcpy(lwd, ".");
         //Ensures that lwd stays in the current directory
-        // if it containts "." and not the cwd
+        // if it contains "." and not the cwd
     }
 }
 
@@ -277,27 +274,24 @@ int is_cd(char line[]) {
 }
 
 void run_cd(char *args[], int arg_count, char lwd[]) {
-    char current_dir[1024];
+    char current_dir[MAX_LINE];
     getcwd(current_dir, sizeof(current_dir));
     
     int success = 0;
     
-    if (arg_count == 1) {
+    if (arg_count == 1){
         char *home = getenv("HOME");
-        if (home != NULL) {
-            success = (chdir(home) == 0);
-        }
-    } else if (arg_count == 2) {
-        if (strcmp(args[1], "-") == 0) {
+        if (home != NULL) success = (chdir(home) == 0);
+    } 
+    else if (arg_count == 2){
+        if (strcmp(args[1], "-") == 0){
             success = (chdir(lwd) == 0);
-        } else {
+        }
+        else{
             success = (chdir(args[1]) == 0);
         }
     }
     
-    if (!success) {
-        perror("cd failed");
-    } else {
-        strcpy(lwd, current_dir);
-    }
+    if (!success) perror("cd failed");
+    else strcpy(lwd, current_dir);
 }
