@@ -35,7 +35,7 @@ static inline void reap()
 }
 
 ///Shell I/O and related functions (add more as appropriate)
-void read_command_line(char line[], char lwd);
+void read_command_line(char line[], char lwd[]);
 void construct_shell_prompt(char shell_prompt[]);
 void parse_command(char line[], char *args[], int *argsc);
 
@@ -55,6 +55,6 @@ char* filename(char *args[], int argsc);
 void clean_args(char *args[], int *argsc);
 
 //Task 3 Commands
-void init_lwd(char lwd);
+void init_lwd(char lwd[]);
 int is_cd(char line[]);
 #endif

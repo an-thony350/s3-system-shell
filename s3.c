@@ -3,11 +3,19 @@
 ///Simple for now, but will be expanded in a following section
 void construct_shell_prompt(char shell_prompt[])
 {
-    strcpy(shell_prompt, "[s3]$ ");
+    char cwd[MAX_PROMPT_LEN];
+
+    if(getcwd(cwd, sizeof(cwd)) != NULL){
+        snprintf(shell_prompt, MAX_PROMPT_LEN, "[%s]$ ", cwd);
+        //snprintf used to changed the memory contents in shell_prompt
+    }
+    else{
+        strcpy(shell_prompt, "[s3]$ ");
+    }
 }
 
 ///Prints a shell prompt and reads input from the user
-void read_command_line(char line[], char lwd)
+void read_command_line(char line[], char lwd[])
 {
     char shell_prompt[MAX_PROMPT_LEN];
     construct_shell_prompt(shell_prompt);
@@ -235,6 +243,14 @@ void launch_program_with_redirection(char *args[], int argsc){
     }
 }
 
+void init_lwd(char lwd[]){
+    if(getcwd(lwd, MAX_PROMPT_LEN) == NULL){
+        perror("getcwd failed");
+        strcpy(lwd, ".");
+        //Ensures that lwd stays in the current directory
+        // if it containts "." and not the cwd
+    }
+}
 
 int is_cd(char line[]) {
     if (line == NULL) return 0;
