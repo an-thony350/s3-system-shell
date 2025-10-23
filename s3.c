@@ -269,7 +269,7 @@ int is_cd(char line[]) {
 
 void run_cd(char *args[], int argsc, char lwd[]){
     char cwd[MAX_PROMPT_LEN];
-    get(cwd, sizeof(cwd));
+    getcwd(cwd, sizeof(cwd));
 
     if(argsc == 1){
         char *home = getenv("HOME");
