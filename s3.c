@@ -6,8 +6,17 @@ void construct_shell_prompt(char shell_prompt[])
     char cwd[MAX_PROMPT_LEN];
 
     if(getcwd(cwd, sizeof(cwd)) != NULL){
-        snprintf(shell_prompt, MAX_PROMPT_LEN, "[%s]$ ", cwd);
-        //snprintf used to changed the memory contents in shell_prompt
+         printf("DEBUG: getcwd returns: %s\n", cwd);
+        char *name_cwd = strrchr(cwd, '/');
+        if(name_cwd != NULL && name_cwd[1] != '\0'){
+            snprintf(shell_prompt, MAX_PROMPT_LEN, "[%s]$ ", name_cwd+1);
+            //snprintf used to changed the memory contents in shell_prompt
+        }
+        else{
+            snprintf(shell_prompt, MAX_PROMPT_LEN, "[%s]$ ", cwd);
+
+        }
+
     }
     else{
         strcpy(shell_prompt, "[s3]$ ");
@@ -267,23 +276,28 @@ int is_cd(char line[]) {
     return 0;
 }
 
-void run_cd(char *args[], int argsc, char lwd[]){
-    char cwd[MAX_PROMPT_LEN];
-    getcwd(cwd, sizeof(cwd));
-
-    if(argsc == 1){
+void run_cd(char *args[], int arg_count, char lwd[]) {
+    char current_dir[1024];
+    getcwd(current_dir, sizeof(current_dir));
+    
+    int success = 0;
+    
+    if (arg_count == 1) {
         char *home = getenv("HOME");
-        if (home) chdir(home);
-        else perror("Home environment not set");
+        if (home != NULL) {
+            success = (chdir(home) == 0);
+        }
+    } else if (arg_count == 2) {
+        if (strcmp(args[1], "-") == 0) {
+            success = (chdir(lwd) == 0);
+        } else {
+            success = (chdir(args[1]) == 0);
+        }
     }
-    else if(argsc == 2){
-        if(strcmp(args[1], "-") == 0) chdir(lwd);
-        else chdir(args[1]);
+    
+    if (!success) {
+        perror("cd failed");
+    } else {
+        strcpy(lwd, current_dir);
     }
-    else{
-        perror("Too many arguments");
-        return;
-    }
-
-    strcpy(lwd, cwd);
 }
