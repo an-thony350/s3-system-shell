@@ -58,4 +58,7 @@ void clean_args(char *args[], int *argsc);
 void init_lwd(char lwd[]);
 int is_cd(char line[]);
 void run_cd(char *args[], int argsc, char lwd[]);
+
+//Task 4 Commands
+int is_pipe(char line[]);
 #endif
