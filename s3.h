@@ -15,6 +15,7 @@
 #define MAX_LINE 1024
 #define MAX_ARGS 128
 #define MAX_PROMPT_LEN 256
+#define MAX_CMDS 16 // Used for task 4
 
 ///Enum for readable argument indices (use where required)
 enum ArgIndex
@@ -58,4 +59,9 @@ void clean_args(char *args[], int *argsc);
 void init_lwd(char lwd[]);
 int is_cd(char line[]);
 void run_cd(char *args[], int argsc, char lwd[]);
+
+//Task 4 Commands
+int is_pipe(char line[]);
+void parse_pipe_command(char line[], char *cmds[MAX_CMDS][MAX_ARGS], int cmdsc[], int* num_cmds);
+void launch_pipeline(char *cmds[MAX_CMDS][MAX_ARGS], int cmdsc[], int num_cmds);
 #endif
