@@ -295,3 +295,70 @@ void run_cd(char *args[], int arg_count, char lwd[]) {
     if (!success) perror("cd failed");
     else strcpy(lwd, current_dir);
 }
+
+int is_pipe(char line[]){
+    if (line == NULL) return 0;
+
+    for(int i = 0; line[i] != '\0'; i++){
+        if(line[i] == '|'){
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void parse_pipe_command(char line[], char *cmds[MAX_CMDS][MAX_ARGS], int cmdsc[], int* num_cmds){
+    char *pipe_token = strtok(line, "|");
+    *num_cmds = 0;
+    char *tmp_cmd[MAX_CMDS];
+    while(pipe_token != NULL && *num_cmds < MAX_CMDS){
+        tmp_cmd[(*num_cmds)++] = pipe_token;
+        pipe_token = strtok(NULL, "|");
+    }
+
+    for(int i = 0; i < *num_cmds; i++){
+
+        parse_command(tmp_cmd[i], cmds[i], &cmdsc[i]);
+    }
+}
+
+void launch_pipeline(char *cmds[MAX_CMDS][MAX_ARGS], int cmdsc[], int num_cmds){
+    int prev_pipe = -1;
+    int fd[2];
+
+    for(int i = 0; i < num_cmds; i++){
+
+        if(i < num_cmds - 1) pipe(fd);
+
+        int rc = fork();
+
+        if(rc == 0){
+            if(i > 0){
+                dup2(prev_pipe, STDIN_FILENO);
+                close(prev_pipe);
+            }
+
+            if(i < num_cmds - 1){
+                dup2(fd[1], STDOUT_FILENO);
+                close(fd[1]);
+                close(fd[0]);
+            }
+
+            execvp(cmds[i][0], cmds[i]);
+            perror("execvp failed");
+            exit(1);
+        }
+
+        else{
+            if(i > 0) close(prev_pipe);
+
+            if(i< num_cmds - 1){
+                close(fd[1]);
+                prev_pipe = fd[0];
+            }
+        }
+    }
+
+    for(int i = 0; i < num_cmds; i++) wait(NULL);
+}
