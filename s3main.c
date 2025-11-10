@@ -17,6 +17,11 @@ int main(int argc, char *argv[]){
     ///Stores the number of arguments
     int argsc;
 
+    //The following are used for multiple pipes to store commands and arguments
+    char *cmds[MAX_CMDS][MAX_ARGS];
+    int argsc_arr[MAX_CMDS];
+    int num_cmds;
+
     while (1) {
 
         read_command_line(line, lwd); ///Notice the additional parameter (required for prompt construction)
@@ -24,6 +29,10 @@ int main(int argc, char *argv[]){
         if(is_cd(line)){///Implement this function
             parse_command(line, args, &argsc);
             run_cd(args, argsc, lwd); ///Implement this function
+        }
+        else if(is_pipe(line)){
+            parse_pipe_command(line, cmds, argsc_arr, &num_cmds);
+            launch_pipeline(cmds, argsc_arr, num_cmds);
         }
         else if(command_with_redirection(line)){
             ///Command with redirection

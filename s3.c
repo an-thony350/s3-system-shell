@@ -308,7 +308,7 @@ int is_pipe(char line[]){
     return 0;
 }
 
-void parse_pipe_command(char line[], char *cmds[MAX_CMDS][MAX_ARGS], int cmdsc[], int* num_cmds){
+void parse_pipe_command(char line[], char *cmds[MAX_CMDS][MAX_ARGS], int argsc_arr[], int* num_cmds){
     char *pipe_token = strtok(line, "|");
     *num_cmds = 0;
     char *tmp_cmd[MAX_CMDS];
@@ -319,11 +319,11 @@ void parse_pipe_command(char line[], char *cmds[MAX_CMDS][MAX_ARGS], int cmdsc[]
 
     for(int i = 0; i < *num_cmds; i++){
 
-        parse_command(tmp_cmd[i], cmds[i], &cmdsc[i]);
+        parse_command(tmp_cmd[i], cmds[i], &argsc_arr[i]);
     }
 }
 
-void launch_pipeline(char *cmds[MAX_CMDS][MAX_ARGS], int cmdsc[], int num_cmds){
+void launch_pipeline(char *cmds[MAX_CMDS][MAX_ARGS], int argsc_arr[], int num_cmds){
     int prev_pipe = -1;
     int fd[2];
 
