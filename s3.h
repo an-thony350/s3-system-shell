@@ -68,5 +68,5 @@ void launch_pipeline(char *cmds[MAX_CMDS][MAX_ARGS], int cmdsc[], int num_cmds);
 //Task 5 Commands
 int is_batched(char line[]);
 void parse_batched_commands(char line[], char *args[], int *argsc);
-void launch_batch(char *args[], int argsc);
+void launch_batch(char *args[], int argsc, char lwd[]);
 #endif

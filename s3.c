@@ -380,13 +380,19 @@ void parse_batched_commands(char line[], char *args[], int *argsc){
     }
 }
 
-void launch_batch(char *args[], int argsc){
+void launch_batch(char *args[], int argsc, char lwd[]){
     for(int i = 0; i < argsc; i++){
-        if(is_pipe(args[i])){
+        if(is_cd(args[i])){
+            char *new_args[MAX_ARGS];
+            int new_argsc;
+            parse_command(args[i], new_args, &new_argsc);
+            run_cd(new_args, new_argsc,lwd);
+        }
+        else if(is_pipe(args[i])){
             char* cmds[MAX_CMDS][MAX_ARGS];
             int argsc_arr[MAX_CMDS];
             int num_cmds;
-            parse_pipe_command(args[i], cmds, argsc_arr, num_cmds);
+            parse_pipe_command(args[i], cmds, argsc_arr, &num_cmds);
             launch_pipeline(cmds, argsc_arr, num_cmds);
         }
         else if(command_with_redirection(args[i])){
