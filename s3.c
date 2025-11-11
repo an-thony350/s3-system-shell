@@ -300,11 +300,20 @@ int is_pipe(char line[]){
     if (line == NULL) return 0;
 
     for(int i = 0; line[i] != '\0'; i++){
-        if(line[i] == '|'){
-            return 1;
-        }
+        if(line[i] == '|') return 1;
     }
 
+    return 0;
+}
+
+int get_redirection_type_from_args(char *args[], int argsc){
+    //Used sppecifically for task 5 when issues occur
+    //with a pripe and redirection within the same argument
+    for(int i = 0; i < argsc; i++){
+        if(strcmp(args[i], ">") == 0) return 1;
+        if(strcmp(args[i], "<") == 0) return 2;
+        if(strcmp(args[i], ">>") == 0) return 3;
+    }
     return 0;
 }
 
@@ -338,6 +347,21 @@ void launch_pipeline(char *cmds[MAX_CMDS][MAX_ARGS], int argsc_arr[], int num_cm
                 dup2(prev_pipe, STDIN_FILENO);
                 close(prev_pipe);
             }
+            if(i == num_cmds - 1){
+                int redir_type = get_redirection_type_from_args(cmds[i], argsc_arr[i]);
+                
+                if (redir_type == 1 || redir_type == 3) {
+                    char *file = filename(cmds[i], argsc_arr[i]);
+                    
+                    clean_args(cmds[i], &argsc_arr[i]); 
+
+                    if(redir_type == 1){
+                        child_with_output_redirected(cmds[i], argsc_arr[i], file, 0);
+                    } else if(redir_type == 3){
+                        child_with_output_redirected(cmds[i], argsc_arr[i], file, 1);
+                    }
+                }
+            }
 
             if(i < num_cmds - 1){
                 dup2(fd[1], STDOUT_FILENO);
@@ -361,4 +385,53 @@ void launch_pipeline(char *cmds[MAX_CMDS][MAX_ARGS], int argsc_arr[], int num_cm
     }
 
     for(int i = 0; i < num_cmds; i++) wait(NULL);
+}
+
+int is_batched(char line[]){
+    if(line == NULL) return 0;
+
+    for(int i  = 0; line[i] != '\0'; i++){
+        if(line[i] == ';') return 1;
+    }
+
+    return 0;
+}
+
+void parse_batched_commands(char line[], char *args[], int *argsc){
+    char *semi_token = strtok(line, ";");
+    *argsc = 0;
+    while(semi_token != NULL && *argsc < MAX_ARGS - 1){
+        args[(*argsc)++] = semi_token;
+        semi_token = strtok(NULL, ";");
+    }
+}
+
+void launch_batch(char *args[], int argsc, char lwd[]){
+    for(int i = 0; i < argsc; i++){
+        if(is_cd(args[i])){
+            char *new_args[MAX_ARGS];
+            int new_argsc;
+            parse_command(args[i], new_args, &new_argsc);
+            run_cd(new_args, new_argsc,lwd);
+        }
+        else if(is_pipe(args[i])){
+            char* cmds[MAX_CMDS][MAX_ARGS];
+            int argsc_arr[MAX_CMDS];
+            int num_cmds;
+            parse_pipe_command(args[i], cmds, argsc_arr, &num_cmds);
+            launch_pipeline(cmds, argsc_arr, num_cmds);
+        }
+        else if(command_with_redirection(args[i])){
+            char *new_args[MAX_ARGS];
+            int new_argsc;
+            parse_command(args[i], new_args, &new_argsc);
+            launch_program_with_redirection(new_args, new_argsc);
+        }
+        else{
+            char *new_args[MAX_ARGS];
+            int new_argsc;
+            parse_command(args[i], new_args, &new_argsc);
+            launch_program(new_args, new_argsc);
+        }
+    }
 }

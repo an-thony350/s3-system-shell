@@ -26,13 +26,21 @@ int main(int argc, char *argv[]){
 
         read_command_line(line, lwd); ///Notice the additional parameter (required for prompt construction)
 
-        if(is_cd(line)){///Implement this function
+        if(is_batched(line)){
+            char *batch_commands[MAX_CMDS];
+            int num_batch_commands;
+            parse_batched_commands(line, batch_commands, &num_batch_commands);
+            launch_batch(batch_commands, num_batch_commands, lwd);
+            reap();
+        }
+        else if(is_cd(line)){///Implement this function
             parse_command(line, args, &argsc);
             run_cd(args, argsc, lwd); ///Implement this function
         }
         else if(is_pipe(line)){
             parse_pipe_command(line, cmds, argsc_arr, &num_cmds);
             launch_pipeline(cmds, argsc_arr, num_cmds);
+            reap();
         }
         else if(command_with_redirection(line)){
             ///Command with redirection
