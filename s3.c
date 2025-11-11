@@ -300,9 +300,7 @@ int is_pipe(char line[]){
     if (line == NULL) return 0;
 
     for(int i = 0; line[i] != '\0'; i++){
-        if(line[i] == '|'){
-            return 1;
-        }
+        if(line[i] == '|') return 1;
     }
 
     return 0;
@@ -361,4 +359,47 @@ void launch_pipeline(char *cmds[MAX_CMDS][MAX_ARGS], int argsc_arr[], int num_cm
     }
 
     for(int i = 0; i < num_cmds; i++) wait(NULL);
+}
+
+int is_batched(char line[]){
+    if(line == NULL) return 0;
+
+    for(int i  = 0; line[i] != '\0'; i++){
+        if(line[i] == ';') return 1;
+    }
+
+    return 0;
+}
+
+void parse_batched_commands(char line[], char *args[], int *argsc){
+    char *semi_token = strtok(line, ";");
+    *argsc = 0;
+    while(semi_token != NULL && *argsc < MAX_ARGS - 1){
+        args[(*argsc)++] = semi_token;
+        semi_token = strtok(NULL, ";");
+    }
+}
+
+void launch_batch(char *args[], int argsc){
+    for(int i = 0; i < argsc; i++){
+        if(is_pipe(args[i])){
+            char* cmds[MAX_CMDS][MAX_ARGS];
+            int argsc_arr[MAX_CMDS];
+            int num_cmds;
+            parse_pipe_command(args[i], cmds, argsc_arr, num_cmds);
+            launch_pipeline(cmds, argsc_arr, num_cmds);
+        }
+        else if(command_with_redirection(args[i])){
+            char *new_args[MAX_ARGS];
+            int new_argsc;
+            parse_command(args[i], new_args, &new_argsc);
+            launch_program_with_redirection(new_args, new_argsc);
+        }
+        else{
+            char *new_args[MAX_ARGS];
+            int new_argsc;
+            parse_command(args[i], new_args, &new_argsc);
+            launch_program(new_args, new_argsc);
+        }
+    }
 }
