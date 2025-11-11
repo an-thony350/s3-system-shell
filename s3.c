@@ -306,6 +306,17 @@ int is_pipe(char line[]){
     return 0;
 }
 
+int get_redirection_type_from_args(char *args[], int argsc){
+    //Used sppecifically for task 5 when issues occur
+    //with a pripe and redirection within the same argument
+    for(int i = 0; i < argsc; i++){
+        if(strcmp(args[i], ">") == 0) return 1;
+        if(strcmp(args[i], "<") == 0) return 2;
+        if(strcmp(args[i], ">>") == 0) return 3;
+    }
+    return 0;
+}
+
 void parse_pipe_command(char line[], char *cmds[MAX_CMDS][MAX_ARGS], int argsc_arr[], int* num_cmds){
     char *pipe_token = strtok(line, "|");
     *num_cmds = 0;
@@ -335,6 +346,21 @@ void launch_pipeline(char *cmds[MAX_CMDS][MAX_ARGS], int argsc_arr[], int num_cm
             if(i > 0){
                 dup2(prev_pipe, STDIN_FILENO);
                 close(prev_pipe);
+            }
+            if(i == num_cmds - 1){
+                int redir_type = get_redirection_type_from_args(cmds[i], argsc_arr[i]);
+                
+                if (redir_type == 1 || redir_type == 3) {
+                    char *file = filename(cmds[i], argsc_arr[i]);
+                    
+                    clean_args(cmds[i], &argsc_arr[i]); 
+
+                    if(redir_type == 1){
+                        child_with_output_redirected(cmds[i], argsc_arr[i], file, 0);
+                    } else if(redir_type == 3){
+                        child_with_output_redirected(cmds[i], argsc_arr[i], file, 1);
+                    }
+                }
             }
 
             if(i < num_cmds - 1){
