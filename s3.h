@@ -70,4 +70,12 @@ int get_redirection_type_from_args(char *args[], int argsc);
 int is_batched(char line[]);
 void parse_batched_commands(char line[], char *args[], int *argsc);
 void launch_batch(char *args[], int argsc, char lwd[]);
+
+//Extension - Nested Subshell
+
+int has_subshell(char line[]);
+void extract_subshell(char line[], char* subshell, char* remaining_cmd);
+void launch_subshell(char* subshell, char lwd[]);
+void process_command(char *cmd, char lwd[]);
+
 #endif

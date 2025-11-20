@@ -26,7 +26,15 @@ int main(int argc, char *argv[]){
 
         read_command_line(line, lwd); ///Notice the additional parameter (required for prompt construction)
 
-        if(is_batched(line)){
+        if(has_subshell(line)){
+            char subshell[MAX_LINE];
+            char remaining_cmd[MAX_LINE];
+            extract_subshell(line, subshell, remaining_cmd);
+            launch_subshell(subshell, lwd);
+
+            if(strlen(remaining_cmd) > 0) process_command(remaining_cmd, lwd);
+        }
+        else if(is_batched(line)){
             char *batch_commands[MAX_CMDS];
             int num_batch_commands;
             parse_batched_commands(line, batch_commands, &num_batch_commands);
