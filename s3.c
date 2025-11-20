@@ -67,7 +67,7 @@ void child(char *args[], int argsc)
     ///of the command specified in args[ARG_PROGNAME].
     ///For reference, see the code in lecture 3.
     execvp(args[0], args);
-    perror("execvp failed \n");
+    perror("execvp failed");
     exit(1);
 }
 
@@ -433,5 +433,74 @@ void launch_batch(char *args[], int argsc, char lwd[]){
             parse_command(args[i], new_args, &new_argsc);
             launch_program(new_args, new_argsc);
         }
+    }
+}
+
+int has_subshell(char line[]){
+    if(line == NULL) return 0;
+    for(int i = 0; line[i] != '\0'; i++){
+        if(line[i] == '(') return 1;
+    }
+    return 0;
+}
+
+void extract_subshell(char line[], char* subshell, char* remaining_cmd){
+    char* open_bracket = strchr(line, '(');
+    char* closed_bracket = strchr(line, ')');
+
+    if(open_bracket && closed_bracket && closed_bracket > open_bracket){
+        int len_subshell = closed_bracket - open_bracket -1;
+        strncpy(subshell, open_bracket + 1, len_subshell);
+        subshell[len_subshell] = '\0';
+    }
+}
+
+void launch_subshell(char* subshell, char lwd[]){
+    int rc = fork();
+    if(rc == 0){
+        process_command(subshell, lwd);
+        exit(0);
+    }
+    else wait(NULL);
+}
+
+void process_command(char *cmd, char lwd[]) {
+    char line_copy[MAX_LINE];
+    strcpy(line_copy, cmd);
+    
+    if(is_batched(line_copy)){
+        char *batch_commands[MAX_CMDS];
+        int num_batch_commands;
+        parse_batched_commands(line_copy, batch_commands, &num_batch_commands);
+        launch_batch(batch_commands, num_batch_commands, lwd);
+        reap();
+    }
+    else if(is_cd(line_copy)){
+        char *args[MAX_ARGS];
+        int argsc;
+        parse_command(line_copy, args, &argsc);
+        run_cd(args, argsc, lwd);
+    }
+    else if(is_pipe(line_copy)){
+        char *cmds[MAX_CMDS][MAX_ARGS];
+        int argsc_arr[MAX_CMDS];
+        int num_cmds;
+        parse_pipe_command(line_copy, cmds, argsc_arr, &num_cmds);
+        launch_pipeline(cmds, argsc_arr, num_cmds);
+        reap();
+    }
+    else if(command_with_redirection(line_copy)){
+        char *args[MAX_ARGS];
+        int argsc;
+        parse_command(line_copy, args, &argsc);
+        launch_program_with_redirection(args, argsc);
+        reap();
+    }
+    else {
+        char *args[MAX_ARGS];
+        int argsc;
+        parse_command(line_copy, args, &argsc);
+        launch_program(args, argsc);
+        reap();
     }
 }
