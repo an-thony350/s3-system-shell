@@ -504,3 +504,71 @@ void process_command(char *cmd, char lwd[]) {
         reap();
     }
 }
+
+int has_globs(char* args[], int argsc){
+    for(int i = 0; i < argsc; i++){
+        if(strpbrk(args[i], "*?[{")) return 1;
+    }
+    return 0;
+}
+
+void ext_globs(char* args[], int* argsc){
+    if(!has_globs(args, *argsc)) return;
+
+    char* new_args[MAX_ARGS];
+    int new_argsc = 0;
+
+    for(int i = 0; i < *argsc && new_argsc < MAX_ARGS -1; i++){
+        
+        if(strpbrk(args[i], "*?[{")){
+            glob_t glob_result;
+            int glob_flags = GLOB_NOCHECK | GLOB_TILDE;
+            if(glob(args[i], glob_flags, NULL, &glob_result) == 0){
+                for(size_t j = 0; j < glob_result.gl_pathc && new_argsc < MAX_ARGS - 1; j++){
+                    new_args[new_argsc++] = strdup(glob_result.gl_pathv[j]);
+                }
+            }
+            globfree(&glob_result);  
+        }
+        else{
+            new_args[new_argsc++] = args[i];
+        }
+    }
+    new_args[new_argsc] = NULL;
+    for(int i = 0; i < new_argsc; i++) {
+        args[i] = new_args[i];
+    }
+    *argsc = new_argsc;
+}
+
+void add_to_history(char* line, char* history[], int* history_count, int* current_history){
+    if(strlen(line) == 0) return;
+
+    if(*history_count > 0 && strcmp(history[*history_count-1], line) == 0) return;
+
+    if(*history_count < MAX_HISTORY){
+        history[*history_count] = malloc(strlen(line) + 1);
+        if(history[*history_count]){
+            strcpy(history[*history_count], line);
+            (*history_count)++;
+        }
+    }
+    else{
+        free(history[0]);
+        for(int i = 1; i < MAX_HISTORY; i++){
+            history[i-1] = history[i];
+        }
+        history[MAX_HISTORY-1] = malloc(strlen(line) + 1);
+        if(history[MAX_HISTORY-1]){
+            strcpy(history[MAX_HISTORY-1], line);
+        }
+    }
+    *current_history = *history_count;
+}
+
+void show_history(char* history[], int history_count){
+    printf("History of commands:\n");
+    for(int i = 0; i < history_count; i++){
+        printf("%d %s\n", i+1, history[i]);
+    }
+}
