@@ -1,5 +1,10 @@
 #include "s3.h"
 
+//Used for job commands
+
+Job jobs[MAX_JOBS];
+int job_count = 0;
+
 ///Simple for now, but will be expanded in a following section
 void construct_shell_prompt(char shell_prompt[])
 {
@@ -92,6 +97,13 @@ void launch_program(char *args[], int argsc)
         exit(0);
     }
 
+    //Used to check for a background job
+    int background = 0;
+    if(argsc > 0 && strcmp(args[argsc-1], "&") == 0){
+        background = 1;
+        args[--argsc] = NULL;
+    }
+
     int rc = fork();
     if(rc<0) {
         fprintf(stderr, "fork failed\n");
@@ -102,7 +114,11 @@ void launch_program(char *args[], int argsc)
         exit(1);
     }
     else{
-        reap();
+        if(background){
+            printf("[%d] %d\n", job_count + 1, rc);
+            add_job(rc, args[0]);
+        }
+        else reap();
     }
 }
 
@@ -571,4 +587,54 @@ void show_history(char* history[], int history_count){
     for(int i = 0; i < history_count; i++){
         printf("%d %s\n", i+1, history[i]);
     }
+}
+
+void add_job(pid_t pid, char* cmd){
+    if(job_count < MAX_JOBS){
+        jobs[job_count].pid = pid;
+        strncpy(jobs[job_count].command, cmd, 99);
+        jobs[job_count].job_id = job_count + 1;
+        job_count++;
+    }
+}
+
+void remove_job(pid_t pid){
+    for(int i = 0; i < job_count; i++){
+        if(jobs[i].pid == pid){
+            for(int j = i; j < job_count - 1; j++) jobs[j] = jobs[j+1];
+        
+        job_count--;
+        break;
+        }
+    }
+}
+
+void handle_jobs(){
+    if(job_count == 0){
+        printf("No background jobs\n");
+        return;
+    }
+    
+    for(int i = 0; i < job_count; i++) {
+        printf("[%d] %d Running %s\n", jobs[i].job_id, jobs[i].pid, jobs[i].command);
+    }
+}
+
+void handle_fg(char *job_id_str) {
+    if(job_count == 0) {
+        printf("No background jobs\n");
+        return;
+    }
+    
+    int job_id = job_id_str ? atoi(job_id_str) : job_count;
+    
+    for(int i = 0; i < job_count; i++) {
+        if(jobs[i].job_id == job_id) {
+            printf("Bringing job [%d] to foreground: %s\n", job_id, jobs[i].command);
+            waitpid(jobs[i].pid, NULL, 0);
+            remove_job(jobs[i].pid);
+            return;
+        }
+    }
+    printf("Job [%d] not found\n", job_id);
 }

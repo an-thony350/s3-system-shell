@@ -29,9 +29,24 @@ int main(int argc, char *argv[]){
 
     for(int i = 0; i < MAX_HISTORY; i++) history[i] == NULL;
 
+    //Used for jobs
+
+    Job jobs[MAX_JOBS];
+    int job_count = 0;
+
     while (1) {
 
         read_command_line(line, lwd); ///Notice the additional parameter (required for prompt construction)
+
+        if(strcmp(line, "jobs") == 0){
+            handle_jobs();
+            continue;
+        }
+        else if(strncmp(line, "fg", 2) == 0){
+            char* job_num = (strlen(line) > 2) ? line + 3 : NULL;
+            handle_fg(job_num);
+            continue;
+        }
 
         if(strcmp(line, "history") == 0){
             show_history(history, history_count);
