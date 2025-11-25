@@ -10,12 +10,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <glob.h>
 
 ///Constants for array sizes, defined for clarity and code readability
 #define MAX_LINE 1024
 #define MAX_ARGS 128
 #define MAX_PROMPT_LEN 256
 #define MAX_CMDS 16 // Used for task 4
+#define MAX_HISTORY 100 // Used for command history
 
 ///Enum for readable argument indices (use where required)
 enum ArgIndex
@@ -78,4 +80,13 @@ void extract_subshell(char line[], char* subshell, char* remaining_cmd);
 void launch_subshell(char* subshell, char lwd[]);
 void process_command(char *cmd, char lwd[]);
 
+//Globbing
+
+int has_globs(char* args[], int argsc);
+void ext_globs(char* args[], int* argsc);
+
+//History
+
+void add_to_history(char* line, char* history[], int* history_count, int* current_history);
+void show_history(char* history[], int history_count);
 #endif
