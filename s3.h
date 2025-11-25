@@ -10,7 +10,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <glob.h>
+#include <glob.h> //Used for globbing
+#include <signal.h> //Used for jobs
 
 ///Constants for array sizes, defined for clarity and code readability
 #define MAX_LINE 1024
@@ -18,6 +19,7 @@
 #define MAX_PROMPT_LEN 256
 #define MAX_CMDS 16 // Used for task 4
 #define MAX_HISTORY 100 // Used for command history
+#define MAX_JOBS 10 // Used for jobs
 
 ///Enum for readable argument indices (use where required)
 enum ArgIndex
@@ -89,4 +91,18 @@ void ext_globs(char* args[], int* argsc);
 
 void add_to_history(char* line, char* history[], int* history_count, int* current_history);
 void show_history(char* history[], int history_count);
+
+//Job control
+typedef struct{
+    pid_t pid;
+    char command[100];
+    int job_id;
+} Job;
+
+void add_job(pid_t pid, char* cmd);
+void remove_job(pid_t pid);
+void handle_jobs();
+void handle_fg(char* job_id_str);
+
+
 #endif
