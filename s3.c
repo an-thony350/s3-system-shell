@@ -245,7 +245,6 @@ void launch_program_with_redirection(char *args[], int argsc){
     else if(rc == 0){
         clean_args(args, &argsc);
 
-
         if(redir_type == 1){
             child_with_output_redirected(args, argsc, file, 0);
         }
@@ -461,13 +460,41 @@ int has_subshell(char line[]){
 }
 
 void extract_subshell(char line[], char* subshell, char* remaining_cmd){
-    char* open_bracket = strchr(line, '(');
-    char* closed_bracket = strchr(line, ')');
 
-    if(open_bracket && closed_bracket && closed_bracket > open_bracket){
-        int len_subshell = closed_bracket - open_bracket -1;
+    //Adapted to handle nested subshells
+    subshell[0] = '\0';
+    remaining_cmd[0] = '\0';
+
+    char* open_bracket = strchr(line, '(');
+    if (!open_bracket) return;
+    
+    int paren_count = 1;
+    char* current = open_bracket + 1;
+    char* closed_bracket = NULL;
+    
+    while (*current != '\0') {
+        if (*current == '(') paren_count++;
+        else if (*current == ')') paren_count--;
+        
+        if (paren_count == 0) {
+            closed_bracket = current;
+            break;
+        }
+        current++;
+    }
+
+    int len_subshell = closed_bracket - open_bracket - 1;
+    if (len_subshell > 0 && len_subshell < MAX_LINE) {
         strncpy(subshell, open_bracket + 1, len_subshell);
         subshell[len_subshell] = '\0';
+    }
+    if (*(closed_bracket + 1) != '\0') {
+        char* remaining_start = closed_bracket + 1;
+        while (*remaining_start == ' ' || *remaining_start == '\t') remaining_start++;
+        if (*remaining_start != '\0') {
+            strncpy(remaining_cmd, remaining_start, MAX_LINE - 1);
+            remaining_cmd[MAX_LINE - 1] = '\0';
+        }
     }
 }
 
@@ -483,7 +510,13 @@ void launch_subshell(char* subshell, char lwd[]){
 void process_command(char *cmd, char lwd[]) {
     char line_copy[MAX_LINE];
     strcpy(line_copy, cmd);
-    
+    if(has_subshell(line_copy)){
+        char subshell[MAX_LINE];
+        char remaining_cmd[MAX_LINE];
+        extract_subshell(line_copy, subshell, remaining_cmd);
+        launch_subshell(subshell, lwd);
+        if(strlen(remaining_cmd) > 0) process_command(remaining_cmd, lwd);
+    }
     if(is_batched(line_copy)){
         char *batch_commands[MAX_CMDS];
         int num_batch_commands;
