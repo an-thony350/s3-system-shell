@@ -573,7 +573,7 @@ void ext_globs(char* args[], int* argsc){
             glob_t glob_result;
             int glob_flags = GLOB_NOCHECK | GLOB_TILDE;
             if(glob(args[i], glob_flags, NULL, &glob_result) == 0){
-                for(size_t j = 0; j < glob_result.gl_pathc && new_argsc < MAX_ARGS - 1; j++){
+                for(int j = 0; j < glob_result.gl_pathc && new_argsc < MAX_ARGS - 1; j++){
                     new_args[new_argsc++] = strdup(glob_result.gl_pathv[j]);
                 }
             }
