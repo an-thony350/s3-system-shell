@@ -3,15 +3,15 @@ Build of a functional shell in C which implements many of the fundamental featur
 
 ## Overview
 
-This shell implements basic commands, and also allows for extended features and complpex command lines used in a bash shell. Including tasks such as batched commands, pipelining, and redirection, further enhacncements have been imoplemented including:
+This shell implements basic commands, and also allows for extended features and complpex command lines used in a bash shell. Including tasks such as batched commands, pipelining, and redirection, further enhacncements have been implemented including:
 - Subshells and nested subshells
 - Globbing
 - Command history
 - Job handling
 
 This shell has been formed using the following files:
-- A c++ file `s3main.c` acting as a main for the s3.c file
-- A c++ file `s3.c` implementing all the functions definined in the header file
+- A C++ file `s3main.c` acting as a main for the s3.c file
+- A C++ file `s3.c` implementing all the functions definined in the header file
 - A header file `s3.h` defining all functions, libraries and constants
 - A shell file `start.sh` has been used to allow for instant execution of the shell.
 
@@ -29,6 +29,7 @@ These implementations generally followed a formula to successfully be implemente
 3. A launching function that actually runs the command
 
 An additional function for batched commands included `int get_redirection_type_from_args(char *args[], int argsc)`. This was required due to issues occuring when a pipe and redirection command occur within the same command line.
+
 These basic commands produced the following outputs when tested:
 
 | Command | Output | Expected Output? |
@@ -72,8 +73,7 @@ In testing, the following oututs were recieved:
 | ( ( echo "nested" ) ) | "nested" execvp failed: No such file or directory | ❓ |
 | (echo "nested"; (echo "not nested") ) | "nested" "not nested" execvp failed: No such file or directory | ❓ |
 
-For subshells, there is clear success in testing, even when combining nesting with batched commands.
-However, with nested subshells, the commands do give the correct output, but after each nested subshell an error `execvp failed: No such file or directory` occurs. Although this is an error, it doesn't affect overall design.
+For subshells, there is clear success in testing, even when combining nesting with batched commands. However, with nested subshells, the commands do give the correct output, but after each nested subshell an error `execvp failed: No such file or directory` occurs. Although this is an error, it doesn't affect overall design.
 
 ### Globbing
 
@@ -164,13 +164,6 @@ The following outputs were recieved in testing:
 
 ## Conclusion and Improvements
 
-In conclusion, a functional shell has been implemented in C acting similar to a shell such as Bash. The basic features
-of the shell have been implemented and further extensions have been added to improve userbility and also allow for
-more features and functions. In terms of the basic tasks, they have been implemented to allow for complex command lines
-which work as expected. In terms of the extensions, they have basic implementation. Globbing is working as expected
-for all cases, and subshells work as expected (including nested subshells) where the slight errors are negligible to
-the overall function of the shell and nesting. Job handling works as expected for basic implementation, but for more
-complex commands, further implentation has not been included.
+In conclusion, a functional shell has been implemented in C acting similar to a shell such as Bash. The basic features of the shell have been implemented and further extensions have been added to improve userbility and also allow for more features and functions. In terms of the basic tasks, they have been implemented to allow for complex command lines which work as expected. In terms of the extensions, they have basic implementation. Globbing is working as expected for all cases, and subshells work as expected (including nested subshells) where the slight errors are negligible to the overall function of the shell and nesting. Job handling works as expected for basic implementation, but for more complex commands, further implentation has not been included.
 
-To further improve this shell, adding functions to handle more complex job control could be added via signal handling
-with Ctrl+C/Z/D ore xpanding the `handle_fg()`, `add_jobs()` and parsing functions. Given more time, environment variables such as `$HOME` `$PATH` and `$USER` could also be implemented.
+To further improve this shell, adding functions to handle more complex job control could be added via signal handling with Ctrl+C/Z/D ore xpanding the `handle_fg()`, `add_jobs()` and parsing functions. Given more time, environment variables such as `$HOME` `$PATH` and `$USER` could also be implemented.
