@@ -1,6 +1,9 @@
 # s3-system-shell
 Build of a functional shell in C which implements many of the fundamental features found in shells like Bash
 
+Anthony Bartlett - 0255 6059
+Denzil Erza-Essien - 0259 3040
+
 ## Overview
 
 This shell implements basic commands, and also allows for extended features and comlpex command lines used in a bash shell. Including tasks such as batched commands, pipelining, and redirection, further enhancements have been implemented including:
