@@ -17,7 +17,7 @@
 #define MAX_LINE 1024
 #define MAX_ARGS 128
 #define MAX_PROMPT_LEN 256
-#define MAX_CMDS 16 // Used for task 4
+#define MAX_CMDS 16 // Used for task 4 - ensures safe pipelining
 #define MAX_HISTORY 100 // Used for command history
 #define MAX_JOBS 10 // Used for jobs
 
@@ -92,7 +92,7 @@ void ext_globs(char* args[], int* argsc);
 void add_to_history(char* line, char* history[], int* history_count, int* current_history);
 void show_history(char* history[], int history_count);
 
-//Job control
+//Job control - struct to simplify implementation
 typedef struct{
     pid_t pid;
     char command[100];

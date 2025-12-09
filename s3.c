@@ -1,6 +1,8 @@
 #include "s3.h"
 
 //Used for job commands
+// Note their inclusion in this file is merley for simpler
+// implementaion of the following job functions
 
 Job jobs[MAX_JOBS];
 int job_count = 0;
@@ -322,8 +324,8 @@ int is_pipe(char line[]){
 }
 
 int get_redirection_type_from_args(char *args[], int argsc){
-    //Used sppecifically for task 5 when issues occur
-    //with a pripe and redirection within the same argument
+    //Used specifically for task 5 when issues occur
+    //with a pipe and redirection within the same argument
     for(int i = 0; i < argsc; i++){
         if(strcmp(args[i], ">") == 0) return 1;
         if(strcmp(args[i], "<") == 0) return 2;
@@ -460,7 +462,8 @@ int has_subshell(char line[]){
 }
 
 void extract_subshell(char line[], char* subshell, char* remaining_cmd){
-
+    // Function "parses" the subshell, makes a new command within the subsell
+    // taking it out of the main command
     //Adapted to handle nested subshells
     subshell[0] = '\0';
     remaining_cmd[0] = '\0';
@@ -508,8 +511,17 @@ void launch_subshell(char* subshell, char lwd[]){
 }
 
 void process_command(char *cmd, char lwd[]) {
+    // Note that this is a repeat of the main due to subshells
+    // But history has been removed from this
     char line_copy[MAX_LINE];
     strcpy(line_copy, cmd);
+    if(strcmp(line_copy, "jobs") == 0){
+        handle_jobs();
+    }
+    else if(strncmp(line_copy, "fg", 2) == 0){
+        char* job_num = (strlen(line_copy) > 2) ? line_copy + 3 : NULL;
+        handle_fg(job_num);
+    }
     if(has_subshell(line_copy)){
         char subshell[MAX_LINE];
         char remaining_cmd[MAX_LINE];
@@ -567,6 +579,7 @@ void ext_globs(char* args[], int* argsc){
     char* new_args[MAX_ARGS];
     int new_argsc = 0;
 
+    // Forming of new glob_t structure and flags
     for(int i = 0; i < *argsc && new_argsc < MAX_ARGS -1; i++){
         
         if(strpbrk(args[i], "*?[{")){
@@ -591,6 +604,7 @@ void ext_globs(char* args[], int* argsc){
 }
 
 void add_to_history(char* line, char* history[], int* history_count, int* current_history){
+    // array is used to form history list
     if(strlen(line) == 0) return;
 
     if(*history_count > 0 && strcmp(history[*history_count-1], line) == 0) return;
@@ -621,6 +635,9 @@ void show_history(char* history[], int history_count){
         printf("%d %s\n", i+1, history[i]);
     }
 }
+
+// Note that this implementation is for simplpe jobs
+// i.e. ones using '&' to specify them
 
 void add_job(pid_t pid, char* cmd){
     if(job_count < MAX_JOBS){
@@ -659,6 +676,7 @@ void handle_fg(char *job_id_str) {
         return;
     }
     
+    // atoi() converts the string value into an integer
     int job_id = job_id_str ? atoi(job_id_str) : job_count;
     
     for(int i = 0; i < job_count; i++) {
